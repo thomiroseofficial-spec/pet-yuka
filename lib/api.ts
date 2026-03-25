@@ -15,26 +15,37 @@ const USE_MOCK = !process.env.EXPO_PUBLIC_SUPABASE_URL || process.env.EXPO_PUBLI
 export async function getFrameworks(): Promise<Framework[]> {
   if (USE_MOCK) return mockFrameworks;
 
-  const { data, error } = await supabase
-    .from('frameworks')
-    .select('*')
-    .eq('status', 'active')
-    .order('follower_count', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('frameworks')
+      .select('*')
+      .eq('status', 'active')
+      .order('follower_count', { ascending: false });
 
-  if (error) throw error;
-  return data || [];
+    if (error || !data || data.length === 0) {
+      console.warn('Supabase frameworks query failed, using mock data:', error?.message);
+      return mockFrameworks;
+    }
+    return data;
+  } catch {
+    return mockFrameworks;
+  }
 }
 
 export async function getCriteria(frameworkId: string): Promise<Criteria[]> {
   if (USE_MOCK) return mockCriteria[frameworkId] || [];
 
-  const { data, error } = await supabase
-    .from('criteria')
-    .select('*')
-    .eq('framework_id', frameworkId);
+  try {
+    const { data, error } = await supabase
+      .from('criteria')
+      .select('*')
+      .eq('framework_id', frameworkId);
 
-  if (error) throw error;
-  return data || [];
+    if (error || !data) return mockCriteria[frameworkId] || [];
+    return data;
+  } catch {
+    return mockCriteria[frameworkId] || [];
+  }
 }
 
 // ============================================================
