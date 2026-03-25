@@ -1,9 +1,6 @@
 -- Pet Yuka — Initial Database Schema
 -- Run via Supabase Dashboard > SQL Editor
 
--- Enable UUID generation
-create extension if not exists "uuid-ossp";
-
 -- ============================================================
 -- USERS (extends Supabase auth.users)
 -- ============================================================
@@ -38,7 +35,7 @@ create trigger on_auth_user_created
 -- INGREDIENTS (canonical master list)
 -- ============================================================
 create table public.ingredients (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null unique,
   aliases text[] not null default '{}',
   category text,
@@ -53,7 +50,7 @@ create policy "Ingredients are publicly readable" on public.ingredients
 -- PRODUCTS
 -- ============================================================
 create table public.products (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   barcode text unique,
   name text not null,
   brand text not null default '',
@@ -92,7 +89,7 @@ create policy "Authenticated users can insert product ingredients" on public.pro
 -- FRAMEWORKS
 -- ============================================================
 create table public.frameworks (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   author text not null,
   description text not null default '',
@@ -110,7 +107,7 @@ create policy "Frameworks are publicly readable" on public.frameworks
 -- CRITERIA (framework evaluation rules)
 -- ============================================================
 create table public.criteria (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   framework_id uuid not null references public.frameworks(id) on delete cascade,
   ingredient text not null,
   rule text not null check (rule in ('blocklist', 'allowlist', 'cap_by_percentage', 'prefer')),
@@ -161,7 +158,7 @@ create policy "Users can manage own follows" on public.user_frameworks
 -- SCAN_HISTORY
 -- ============================================================
 create table public.scan_history (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   product_id uuid not null references public.products(id) on delete cascade,
   scanned_at timestamptz not null default now()
